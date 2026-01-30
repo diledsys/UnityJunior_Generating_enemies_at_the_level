@@ -7,6 +7,7 @@ public sealed class EnemySpawner : MonoBehaviour
     [SerializeField] private EnemyPool _enemyPool;
     [SerializeField] private float _spawnInterval = 2f;
 
+    private bool _isSpawning;
     private WaitForSeconds _wait;
     private Coroutine _spawnCoroutine;
 
@@ -27,24 +28,31 @@ public sealed class EnemySpawner : MonoBehaviour
 
     public void StartSpawning()
     {
-        if (_spawnCoroutine != null)
+        if (_isSpawning)
             return;
+
+        _isSpawning = true;
 
         _spawnCoroutine = StartCoroutine(SpawnRoutine());
     }
 
     public void StopSpawning()
     {
-        if (_spawnCoroutine == null)
+        if (!_isSpawning)
             return;
 
-        StopCoroutine(_spawnCoroutine);
-        _spawnCoroutine = null;
+        _isSpawning = false;
+
+        if (_spawnCoroutine != null)
+        {
+            StopCoroutine(_spawnCoroutine);
+            _spawnCoroutine = null;
+        }
     }
 
     private IEnumerator SpawnRoutine()
     {
-        while (true)
+        while (_isSpawning)
         {
             yield return _wait;
             SpawnOne();
