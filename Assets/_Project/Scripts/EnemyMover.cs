@@ -1,54 +1,56 @@
 using UnityEngine;
-using static UnityEngine.Rendering.DebugUI;
 
-public class EnemyMover : MonoBehaviour
+public sealed class EnemyMover : MonoBehaviour
 {
-    [SerializeField] private float _moveSpeed = 3f;
-    [SerializeField] private float _lifeTime = 55f;
-    [SerializeField] private Animator _animator;
-    [SerializeField] private float _walkSpeedParam = 3f;
-    [SerializeField] private float _turnSpeed = 720f;
-
     private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
-    private Vector3 _moveDirection = Vector3.forward;
-    private bool _hasDirection;
+    private const float MinDirectionSqrMagnitude = 0.0001f;
 
-    private void Start()
+    [SerializeField] private float _moveSpeed = 2f;
+    [SerializeField] private float _turnSpeedDeg = 720f;
+    [SerializeField] private float _walkAnimSpeedValue = 1f;
+    [SerializeField] private Animator _animator;
+
+    private Vector3 _moveDirection;
+    private bool _isMoving;
+
+    private void Awake()
     {
-        Destroy(gameObject, _lifeTime);
-        UpdateAnimationSpeed();
-    }
-
-    public void SetMoveDirection(Vector3 direction)
-    {
-        if (direction.sqrMagnitude < 0.0001f)
-            return;
-
-        _moveDirection = direction.normalized;
-        _hasDirection = true;
-
-        UpdateAnimationSpeed();
+        if (_animator == null)
+            _animator = GetComponentInChildren<Animator>();
     }
 
     private void Update()
     {
-        if (!_hasDirection)
+        if (!_isMoving)
             return;
 
-        Quaternion targetRot = Quaternion.LookRotation(_moveDirection, Vector3.up);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation,targetRot,_turnSpeed * Time.deltaTime);
+        Quaternion targetRotation = Quaternion.LookRotation(_moveDirection, Vector3.up);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _turnSpeedDeg * Time.deltaTime);
 
-        float delta = _moveSpeed * Time.deltaTime;
-        transform.Translate(_moveDirection * delta, Space.World);
+        transform.Translate(_moveDirection * ( _moveSpeed * Time.deltaTime ), Space.World);
+
+        if (_animator != null)
+            _animator.SetFloat(SpeedHash, _walkAnimSpeedValue);
     }
 
-    private void UpdateAnimationSpeed()
+    public void SetDirection(Vector3 direction)
     {
-        if (_animator == null)
+        if (direction.sqrMagnitude < MinDirectionSqrMagnitude)
             return;
 
-        float speedValue = _hasDirection ? _walkSpeedParam : 0f;
-        _animator.SetFloat(SpeedHash, speedValue);
+        _moveDirection = direction.normalized;
+        _isMoving = true;
+
+        if (_animator != null)
+            _animator.SetFloat(SpeedHash, _walkAnimSpeedValue);
+    }
+
+    public void StopMoving()
+    {
+        _isMoving = false;
+
+        if (_animator != null)
+            _animator.SetFloat(SpeedHash, 0f);
     }
 }

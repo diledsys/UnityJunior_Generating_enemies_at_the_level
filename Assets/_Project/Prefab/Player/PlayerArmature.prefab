@@ -880,6 +880,7 @@ GameObject:
   - component: {fileID: 8608614784142512250}
   - component: {fileID: 7810536988408661442}
   - component: {fileID: -3059455449622271434}
+  - component: {fileID: 9215543454305389841}
   m_Layer: 8
   m_Name: PlayerArmature
   m_TagString: Player
@@ -1143,10 +1144,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMover
   _moveSpeed: 2
-  _lifeTime: 55
+  _turnSpeedDeg: 720
+  _walkAnimSpeedValue: 2
   _animator: {fileID: 2285800675477410825}
-  _walkSpeedParam: 2
-  _turnSpeed: 720
 --- !u!136 &7810536988408661442
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1197,6 +1197,19 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &9215543454305389841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3959779866043013099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe93fadd616fd05408aa7ca1bc88cb81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReturnToPoolAfterTime
+  _lifeTime: 10
 --- !u!1 &4039389143158243973
 GameObject:
   m_ObjectHideFlags: 0

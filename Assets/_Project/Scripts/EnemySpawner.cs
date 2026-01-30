@@ -1,14 +1,19 @@
 using System.Collections;
 using UnityEngine;
 
-public class EnemySpawner : MonoBehaviour
+public sealed class EnemySpawner : MonoBehaviour
 {
     [SerializeField] private SpawnPoint[] _spawnPoints;
-    [SerializeField] private EnemyMover _enemyPrefab;
+    [SerializeField] private EnemyPool _enemyPool;
     [SerializeField] private float _spawnInterval = 2f;
 
-    private Coroutine _spawnRoutine;
-    private bool _isRunning;
+    private WaitForSeconds _wait;
+    private Coroutine _spawnCoroutine;
+
+    private void Awake()
+    {
+        _wait = new WaitForSeconds(_spawnInterval);
+    }
 
     private void OnEnable()
     {
@@ -20,39 +25,48 @@ public class EnemySpawner : MonoBehaviour
         StopSpawning();
     }
 
-    private void StartSpawning()
+    public void StartSpawning()
     {
-        if (_isRunning)
+        if (_spawnCoroutine != null)
             return;
 
-        _isRunning = true;
-        _spawnRoutine = StartCoroutine(SpawnRoutine());
+        _spawnCoroutine = StartCoroutine(SpawnRoutine());
     }
 
-    private void StopSpawning()
+    public void StopSpawning()
     {
-        _isRunning = false;
-        _spawnRoutine = null;
+        if (_spawnCoroutine == null)
+            return;
+
+        StopCoroutine(_spawnCoroutine);
+        _spawnCoroutine = null;
     }
 
     private IEnumerator SpawnRoutine()
     {
-        while (_isRunning)
+        while (true)
         {
-            yield return new WaitForSeconds(_spawnInterval);
+            yield return _wait;
             SpawnOne();
         }
     }
 
     private void SpawnOne()
     {
-        if (_enemyPrefab == null || _spawnPoints == null || _spawnPoints.Length == 0)
+        if (_enemyPool == null || _spawnPoints == null || _spawnPoints.Length == 0)
             return;
 
         int index = Random.Range(0, _spawnPoints.Length);
-        SpawnPoint sp = _spawnPoints[index];
+        SpawnPoint spawnPoint = _spawnPoints[index];
 
-        EnemyMover enemy = Instantiate(_enemyPrefab, sp.Position, Quaternion.identity);
-        enemy.SetMoveDirection(sp.MoveDirection);
+        EnemyMover enemy = _enemyPool.Get(spawnPoint.Position, Quaternion.identity);
+        enemy.SetDirection(spawnPoint.Direction);
+
+        ReturnToPoolAfterTime lifetime = enemy.GetComponent<ReturnToPoolAfterTime>();
+        if (lifetime != null)
+        {
+            lifetime.Init(_enemyPool);
+            lifetime.StartTimer();
+        }
     }
 }

@@ -1,28 +1,33 @@
 using UnityEngine;
 
-public class SpawnPoint : MonoBehaviour
+public sealed class SpawnPoint : MonoBehaviour
 {
-    [SerializeField] private Transform _direction;
+    private const float MinDirectionSqrMagnitude = 0.0001f;
+
+    [SerializeField] private Transform _directionTarget;
 
     public Vector3 Position => transform.position;
 
-    public Vector3 MoveDirection
+    public Vector3 Direction
     {
         get
         {
-            if (_direction == null)
+            if (_directionTarget == null)
                 return transform.forward;
 
-            Vector3 dir = ( _direction.position - transform.position );
-            return dir.sqrMagnitude > 0.0001f ? dir.normalized : transform.forward;
+            Vector3 toTarget = _directionTarget.position - transform.position;
+
+            if (toTarget.sqrMagnitude < MinDirectionSqrMagnitude)
+                return transform.forward;
+
+            return toTarget.normalized;
         }
     }
 
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.green;
-        Vector3 dir = MoveDirection;
-        Gizmos.DrawLine(transform.position, transform.position + dir * 2f);
         Gizmos.DrawSphere(transform.position, 0.1f);
+        Gizmos.DrawLine(transform.position, transform.position + Direction * 2f);
     }
 }
